@@ -1,15 +1,14 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+import websocket
 from scapy.all import sendp, Ether, ARP, conf
+import os
+import rel
+import ssl
 
-CHANNEL_ID = bytes([149])
-
-# Initialize the Flask app
-app = Flask(__name__)
-CORS(app)
 
 # Network interface configuration
 interface = None  # Change to match your actual network interface
+RELAY_SERVER_APP_NAME = os.environ['RELAY_SERVER_APP_NAME']
+CHANNEL_ID = bytes([int(os.environ['CHANNEL_ID'])])
 
 def list_interfaces():
     # This will print all available network interfaces
@@ -26,20 +25,27 @@ def send_arp_with_extra_data(custom_data):
     sendp(packet, iface=interface)
     print(f"Sent ARP packet with extra data: {custom_data}")
 
-# Define the API endpoint
-@app.route('/', methods=['POST'])
-def handle_broadcast():
-    data = request.data.decode('utf-8')  # Get raw data from request
-    if not data:
-        return jsonify({"error": "No data provided in request body"}), 400
+def on_message(ws, message):
+    send_arp_with_extra_data(message)
 
-    try:
-        send_arp_with_extra_data(data)
-        return jsonify({"status": "Data broadcasted via ARP!"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+def on_error(ws, error):
+    print(error)
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5030, debug=True)
+def on_close(ws, close_status_code, close_msg):
+    print("### closed ###")
 
-send_arp_with_extra_data('123')
+def on_open(ws):
+    print("Opened connection")
+    ws.send_text(f'dest/{RELAY_SERVER_APP_NAME}')
+
+if __name__ == "__main__":
+    websocket.enableTrace(False)
+    ws = websocket.WebSocketApp(f"wss://streamlineanalytics.net:10010",
+                              on_open=on_open,
+                              on_message=on_message,
+                              on_error=on_error,
+                              on_close=on_close)
+
+    ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE}, dispatcher=rel, reconnect=5)  # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
+    rel.signal(2, rel.abort)  # Keyboard Interrupt
+    rel.dispatch()
