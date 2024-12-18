@@ -38,7 +38,7 @@ def on_close(ws, close_status_code, close_msg):
 
 def on_open(ws):
     print("Opened connection")
-    ws.send_text(f'dest/{RELAY_SERVER_APP_NAME}')
+    ws.send_text(f'dest/{APP_NAME}')
 
 if __name__ == "__main__":
     websocket.enableTrace(False)
