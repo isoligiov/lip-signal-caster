@@ -23,6 +23,8 @@ def send_arp_with_extra_data(custom_data):
     extra_data = CHANNEL_ID + custom_data
     packet = ether / arp / extra_data
 
+    print(packet)
+
     # Send packet out on specified interface
     sendp(packet, iface=interface)
     print(f"Sent ARP packet with extra data: {custom_data}")
