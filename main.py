@@ -20,7 +20,7 @@ def list_interfaces():
 def send_arp_with_extra_data(custom_data):
     ether = Ether(dst="ff:ff:ff:ff:ff:ff")  # Broadcast MAC address
     arp = ARP(op=1, hwsrc=ether.src, psrc="0.0.0.0", hwdst="00:00:00:00:00:00", pdst="0.0.0.0")
-    extra_data = CHANNEL_ID + custom_data.encode('utf-8')
+    extra_data = CHANNEL_ID + custom_data
     packet = ether / arp / extra_data
 
     # Send packet out on specified interface
