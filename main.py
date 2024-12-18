@@ -3,7 +3,9 @@ from scapy.all import sendp, Ether, ARP, conf
 import os
 import rel
 import ssl
+from dotenv import load_dotenv
 
+load_dotenv()
 
 # Network interface configuration
 interface = None  # Change to match your actual network interface
