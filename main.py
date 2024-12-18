@@ -51,5 +51,6 @@ if __name__ == "__main__":
                               on_close=on_close)
 
     ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE}, dispatcher=rel, reconnect=5)  # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
+    print(APP_NAME, CHANNEL_ID)
     rel.signal(2, rel.abort)  # Keyboard Interrupt
     rel.dispatch()
