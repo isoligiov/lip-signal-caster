@@ -7,7 +7,7 @@ import ssl
 
 # Network interface configuration
 interface = None  # Change to match your actual network interface
-RELAY_SERVER_APP_NAME = os.environ['RELAY_SERVER_APP_NAME']
+APP_NAME = os.environ['APP_NAME']
 CHANNEL_ID = bytes([int(os.environ['CHANNEL_ID'])])
 
 def list_interfaces():
