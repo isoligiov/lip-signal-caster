@@ -1,4 +1,3 @@
 scapy
-websocket-client
-rel
+websockets
 python-dotenv

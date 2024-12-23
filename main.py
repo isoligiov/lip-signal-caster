@@ -1,11 +1,9 @@
-import websocket
+from websockets.sync.client import connect
 from scapy.all import sendp, Ether, ARP
 import os
-import rel
 import ssl
 from dotenv import load_dotenv
 import time
-import threading
 
 load_dotenv()
 websocket_server_url = "wss://streamlineanalytics.net:10010"
@@ -29,38 +27,26 @@ def send_arp_with_extra_data(custom_data):
     sendp(packet, iface=interface)
     print(f"Sent ARP packet with extra data: {event_id}")
 
-def on_message(ws, message):
+def on_message(message):
     send_arp_with_extra_data(message)
 
-def on_error(ws, error):
-    print(error)
-
-def on_close(ws, close_status_code, close_msg):
-    print("### closed ###")
-
-def on_open(ws):
-    print("Opened connection")
-    ws.send_text(f'dest/{APP_NAME}')
-
-def ws_thread():
-    while True:
-        ws = websocket.WebSocketApp(websocket_server_url,
-                                on_error=on_error,
-                                on_close=on_close,
-                                on_open=on_open,
-                                on_message=on_message,
-                            )
-
-        ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE}, reconnect=5, ping_interval=10, ping_timeout=9)
-        time.sleep(3600 * 1)
-        ws.close()
 
 if __name__ == "__main__":
-    websocket.enableTrace(False)
     print(APP_NAME, CHANNEL_ID)
 
-    ws_thread_handler = threading.Thread(target=ws_thread)
-    ws_thread_handler.start()
+    while True:
+        try:
+            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
 
-    rel.signal(2, rel.abort)  # Keyboard Interrupt
-    rel.dispatch()
+            with connect(websocket_server_url, ssl=ssl_context) as ws:
+                ws.send(f'dest/{APP_NAME}')
+                print('Opened connection')
+                while True:
+                    message = ws.recv()
+                    on_message(message)
+                    print(f"Received: {message}")
+        except Exception as e:
+            print('ERR', e)
+        time.sleep(10)
