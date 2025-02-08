@@ -1,12 +1,11 @@
 from websockets.sync.client import connect
 from scapy.all import sendp, Ether, ARP
 import os
-import ssl
 from dotenv import load_dotenv
 import time
 
 load_dotenv()
-websocket_server_url = "wss://streamlineanalytics.net:10010"
+websocket_server_url = "ws://5.133.9.244:10010"
 
 # Network interface configuration
 interface = None  # Change to match your actual network interface
@@ -25,6 +24,8 @@ def send_arp_with_extra_data(custom_data):
 
     # Send packet out on specified interface
     sendp(packet, iface=interface)
+    # Prevent packet loss
+    sendp(packet, iface=interface)
     print(f"Sent ARP packet with extra data: {event_id}")
 
 def on_message(message):
@@ -36,11 +37,7 @@ if __name__ == "__main__":
 
     while True:
         try:
-            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-            ssl_context.check_hostname = False
-            ssl_context.verify_mode = ssl.CERT_NONE
-
-            with connect(websocket_server_url, ssl=ssl_context) as ws:
+            with connect(websocket_server_url) as ws:
                 ws.send(f'dest/{APP_NAME}')
                 print('Opened connection')
                 while True:
