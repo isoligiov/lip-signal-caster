@@ -3,6 +3,7 @@ from scapy.all import sendp, Ether, ARP
 import os
 from dotenv import load_dotenv
 import time
+import threading
 
 load_dotenv()
 websocket_server_url = "ws://5.133.9.244:10010"
@@ -31,6 +32,14 @@ def send_arp_with_extra_data(custom_data):
 def on_message(message):
     send_arp_with_extra_data(message)
 
+def send_ping(ws):
+    while True:
+        try:
+            ws.send("ping")
+            print("Sent ping message")
+        except Exception as e:
+            print("Ping failed:", e)
+        time.sleep(30)  # Send ping every 30 seconds
 
 if __name__ == "__main__":
     print(APP_NAME, CHANNEL_ID)
@@ -40,6 +49,11 @@ if __name__ == "__main__":
             with connect(websocket_server_url) as ws:
                 ws.send(f'dest/{APP_NAME}')
                 print('Opened connection')
+                
+                # Start a background thread for pinging
+                ping_thread = threading.Thread(target=send_ping, args=(ws,), daemon=True)
+                ping_thread.start()
+                
                 while True:
                     message = ws.recv()
                     on_message(message)
