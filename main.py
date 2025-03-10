@@ -13,6 +13,7 @@ interface = None  # Change to match your actual network interface
 APP_NAME = os.environ['APP_NAME']
 CHANNEL_ID = bytes([int(os.environ['CHANNEL_ID'])])
 event_id = 0
+stop_event = threading.Event()  # Event to signal stopping the main loop
 
 def send_arp_with_extra_data(custom_data):
     global event_id
@@ -33,12 +34,14 @@ def on_message(message):
     send_arp_with_extra_data(message)
 
 def send_ping(ws):
-    while True:
+    while not stop_event.is_set():
         try:
             ws.send("ping")
             print("Sent ping message")
         except Exception as e:
             print("Ping failed:", e)
+            stop_event.set()  # Signal the main thread to stop
+            break
         time.sleep(30)  # Send ping every 30 seconds
 
 if __name__ == "__main__":
@@ -50,14 +53,21 @@ if __name__ == "__main__":
                 ws.send(f'dest/{APP_NAME}')
                 print('Opened connection')
                 
+                stop_event.clear()
                 # Start a background thread for pinging
                 ping_thread = threading.Thread(target=send_ping, args=(ws,), daemon=True)
                 ping_thread.start()
                 
-                while True:
-                    message = ws.recv()
-                    on_message(message)
-                    print(f"Received: {message}")
+                while not stop_event.is_set():
+                    try:
+                        message = ws.recv()
+                        on_message(message)
+                        print(f"Received: {message}")
+                    except Exception:
+                        continue
+                ws.close()
+                print('Closed connection')
         except Exception as e:
-            print('ERR', e)
-        time.sleep(10)
+            print('Connection error:', e)
+
+        time.sleep(10)  # Wait before retrying the connection
