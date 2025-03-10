@@ -60,11 +60,11 @@ if __name__ == "__main__":
                 
                 while not stop_event.is_set():
                     try:
-                        message = ws.recv()
+                        message = ws.recv(timeout=60)
                         on_message(message)
                         print(f"Received: {message}")
                     except Exception:
-                        continue
+                        print("No message received")
                 ws.close()
                 print('Closed connection')
         except Exception as e:
