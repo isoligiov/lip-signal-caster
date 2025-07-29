@@ -40,7 +40,6 @@ ws_lock = threading.Lock()
 
 def on_message(message):
     global should_output
-    print(message)
     json_message = json.loads(message)
     if json_message['type'] == 'mouth':
         if json_message['data'] == 'go':
@@ -255,6 +254,8 @@ if __name__ == "__main__":
                 # Set global ws variable
                 with ws_lock:
                     ws = ws_connection
+
+                ws.send(json.dumps({"room": APP_NAME, "type": "join"}))
                 
                 stop_event.clear()
                 # Start a background thread for pinging
