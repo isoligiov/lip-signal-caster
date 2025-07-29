@@ -41,7 +41,7 @@ ws_lock = threading.Lock()
 def on_message(message):
     global should_output
     json_message = json.loads(message)
-    if json_message['type'] == 'speak':
+    if json_message['type'] == 'mouth':
         if json_message['data'] == 'go':
             should_output = True
 
