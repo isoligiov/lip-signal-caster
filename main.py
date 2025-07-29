@@ -43,6 +43,7 @@ def on_message(message):
     json_message = json.loads(message)
     if json_message['type'] == 'mouth':
         if json_message['data'] == 'go':
+            print('mouth go')
             should_output = True
 
 def detect_voice(audio_data):
