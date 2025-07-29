@@ -91,7 +91,7 @@ def send_speak_message(data: str):
     with ws_lock:
         if ws is not None:
             try:
-                ws.send(json.dumps({"room": APP_NAME, "type": "cmd", "command": {"type": "speak", "data": data}}))
+                ws.send(json.dumps({"room": APP_NAME, "type": "cmd", "command": json.dumps({"type": "speak", "data": data})}))
             except Exception as e:
                 print(f"Failed to send data via WebSocket: {e}")
                 stop_event.set()
